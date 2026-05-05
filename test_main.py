@@ -44,15 +44,17 @@ ORDER BY c.contactLastName;
 
 # STEP 5: Payments with contact name formatting
 # Corrected to ensure a trailing space exists for the test assertion
-df_payment = pd.read_sql("""
-SELECT c.contactFirstName || ' ' AS contactFirstName,
-       c.contactLastName,
-       p.amount,
-       p.paymentDate
+df_customers = pd.read_sql("""
+SELECT e.officeCode,
+       o.city,
+       COUNT(DISTINCT c.customerNumber) AS n_customers
 FROM customers c
-JOIN payments p
-ON c.customerNumber = p.customerNumber
-ORDER BY CAST(p.amount AS FLOAT) DESC;
+JOIN employees e
+ON c.salesRepEmployeeNumber = e.employeeNumber
+JOIN offices o
+ON e.officeCode = o.officeCode
+GROUP BY e.officeCode
+ORDER BY n_customers DESC, e.officeCode;
 """, conn)
 
 # STEP 6: Employees by customer credit limit
