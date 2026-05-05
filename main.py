@@ -92,21 +92,21 @@ GROUP BY p.productCode
 ORDER BY numpurchasers DESC;
 """, conn)
 
-# ✅ FIXED HERE
+
 df_customers = pd.read_sql("""
 SELECT o.officeCode,
        o.city,
        COUNT(DISTINCT c.customerNumber) AS n_customers
 FROM offices o
-LEFT JOIN employees e
+JOIN employees e
 ON o.officeCode = e.officeCode
-LEFT JOIN customers c
+JOIN customers c
 ON e.employeeNumber = c.salesRepEmployeeNumber
 GROUP BY o.officeCode
-ORDER BY n_customers DESC;
+ORDER BY n_customers DESC, o.officeCode;
 """, conn)
 
-# ✅ FIXED HERE (ordering)
+
 df_under_20 = pd.read_sql("""
 SELECT DISTINCT e.employeeNumber,
        e.firstName,
@@ -130,7 +130,7 @@ WHERE od.productCode IN (
     GROUP BY od2.productCode
     HAVING COUNT(DISTINCT o2.customerNumber) < 20
 )
-ORDER BY e.employeeNumber;
+ORDER BY e.firstName;
 """, conn)
 
 conn.close()
