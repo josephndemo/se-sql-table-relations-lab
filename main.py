@@ -1,13 +1,10 @@
 # STEP 0
-
 import sqlite3
 import pandas as pd
 
-# Connect to the database
 conn = sqlite3.connect('data.sqlite')
 
 # STEP 1
-# Boston employees (ONLY first + last name → 2 columns)
 df_boston = pd.read_sql("""
 SELECT e.firstName, e.lastName
 FROM employees e
@@ -18,7 +15,6 @@ ORDER BY e.firstName;
 """, conn)
 
 # STEP 2
-# Offices with zero employees
 df_zero_emp = pd.read_sql("""
 SELECT o.officeCode, o.city
 FROM offices o
@@ -28,7 +24,6 @@ WHERE e.employeeNumber IS NULL;
 """, conn)
 
 # STEP 3
-# All employees + office info
 df_employee = pd.read_sql("""
 SELECT e.firstName, e.lastName, o.city, o.state
 FROM employees e
@@ -38,7 +33,6 @@ ORDER BY e.firstName, e.lastName;
 """, conn)
 
 # STEP 4
-# Customers with no orders
 df_contacts = pd.read_sql("""
 SELECT c.contactFirstName, c.contactLastName, c.phone, c.salesRepEmployeeNumber
 FROM customers c
@@ -49,7 +43,6 @@ ORDER BY c.contactLastName;
 """, conn)
 
 # STEP 5
-# Payments sorted by amount (TRIM fixes 'Diego ')
 df_payment = pd.read_sql("""
 SELECT TRIM(c.contactFirstName) || ' ' AS contactFirstName,
        c.contactLastName,
@@ -62,7 +55,6 @@ ORDER BY CAST(p.amount AS FLOAT) DESC;
 """, conn)
 
 # STEP 6
-# Employees with avg credit > 90k
 df_credit = pd.read_sql("""
 SELECT e.employeeNumber, e.firstName, e.lastName,
        COUNT(c.customerNumber) AS num_customers
@@ -75,7 +67,6 @@ ORDER BY num_customers DESC;
 """, conn)
 
 # STEP 7
-# Product sales
 df_product_sold = pd.read_sql("""
 SELECT p.productName,
        COUNT(od.orderNumber) AS numorders,
@@ -88,7 +79,6 @@ ORDER BY totalunits DESC;
 """, conn)
 
 # STEP 8
-# Number of customers per product
 df_total_customers = pd.read_sql("""
 SELECT p.productName,
        p.productCode,
@@ -102,12 +92,11 @@ GROUP BY p.productCode
 ORDER BY numpurchasers DESC;
 """, conn)
 
-# STEP 9
-# Customers per office
+# ✅ FIXED HERE
 df_customers = pd.read_sql("""
 SELECT o.officeCode,
        o.city,
-       COUNT(c.customerNumber) AS n_customers
+       COUNT(DISTINCT c.customerNumber) AS n_customers
 FROM offices o
 LEFT JOIN employees e
 ON o.officeCode = e.officeCode
@@ -117,8 +106,7 @@ GROUP BY o.officeCode
 ORDER BY n_customers DESC;
 """, conn)
 
-# STEP 10
-# Employees who sold products purchased by < 20 customers
+# ✅ FIXED HERE (ordering)
 df_under_20 = pd.read_sql("""
 SELECT DISTINCT e.employeeNumber,
        e.firstName,
@@ -142,7 +130,7 @@ WHERE od.productCode IN (
     GROUP BY od2.productCode
     HAVING COUNT(DISTINCT o2.customerNumber) < 20
 )
-ORDER BY e.firstName;
+ORDER BY e.employeeNumber;
 """, conn)
 
 conn.close()
